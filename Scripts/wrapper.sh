@@ -4,6 +4,7 @@ today=$(date +"%Y-%m-%d")
 logfile="/hd/new/logs/log_${today}.log"
 
 # Run each task sequentially, logging output and exiting on failure
+# Tees are for logging on screen and on the log file
 echo -e "\n----------------------------------------------------" | tee -a "$logfile"
 echo "| Starting sequence at $(date) |" | tee -a "$logfile"
 echo -e "----------------------------------------------------\n" | tee -a "$logfile"

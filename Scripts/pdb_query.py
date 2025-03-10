@@ -1,10 +1,11 @@
 import requests
 import json
 import time
-from datetime import date
+from datetime import date, timedelta, datetime
 import sys
 
 url_search_api = 'https://search.rcsb.org/rcsbsearch/v2/query?json='
+error_date = "1970-01-01"
 
 # Read the last run date or set to a default if the file doesn't exist
 try:
@@ -12,14 +13,15 @@ try:
         lines = f.readlines()
         if lines:
             last_run_date = lines[-1].strip()
+            #date_check = str(datetime.strptime(last_run_date,"%Y-%m-%d") - timedelta(days=5))
         else:
-            last_run_date = "2024-01-01"
+            last_run_date = error_date
 except FileNotFoundError:
-    last_run_date = "2024-01-01"  # Default starting date
+    last_run_date = error_date 
 
 today = date.today().strftime("%Y-%m-%d")
 
-# Define the base query to fetch only new protein entries since the last run date
+# Define the base query to fetch only new entries since the last run date
 query = {
     "query": {
         "type": "group",
@@ -40,7 +42,10 @@ query = {
                 "parameters": {
                     "attribute": "rcsb_accession_info.initial_release_date",
                     "operator": "greater_or_equal",
-                    "value": last_run_date
+                    #"value": "1970-01-01"
+                    "value": "2025-01-01"
+                    #"value": last_run_date
+                    #"value": date_check
                 }
             },
             {
@@ -97,12 +102,15 @@ def fetch_pdb_ids(start=0, rows=1000):
 
     return all_results
 
+# Fetch PDB IDs for the new range
 pdb_ids_new = fetch_pdb_ids()
 
-with open(f"/hd/new/new_ids/new_ids_{today}.txt", "w") as f:
+# Save the new PDB IDs to a file
+with open(f"/hd/new/new_ids/new_ids_{today}.txt", "a") as f:
     for pdb_id in pdb_ids_new:
         f.write(f"{pdb_id}\n")
 
+# Update the last run date
 with open('/hd/new/last_run_dates.txt', 'a') as f:
     if today != last_run_date: 
         f.write(f"{today}\n")
